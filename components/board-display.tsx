@@ -63,7 +63,13 @@ export function BoardDisplay({ board, onBoardLink, onBack }: BoardDisplayProps) 
           currentBoard={board.name}
           showMessage={showMessage}
           onToggleMessage={setShowMessage}
-          onBoardLoad={onBoardLink}
+          onBoardLoad={(boards, rootBoard, manifest) => {
+            // Handle board load from settings separately from navigation
+            if (onBoardLink) {
+              const boardId = rootBoard.id;
+              onBoardLink(boardId);
+            }
+          }}
         />
       </div>
 
