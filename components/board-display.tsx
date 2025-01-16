@@ -119,13 +119,13 @@ export function BoardDisplay({ board, onBoardLink, onBack }: BoardDisplayProps) 
                     {image.url ? (
                       <img
                         src={image.url}
-                        alt={image.alt || button.label}
+                        alt={button.label}
                         className="w-full h-full object-contain"
                       />
                     ) : image.data ? (
                       <img
                         src={image.data}
-                        alt={image.alt || button.label}
+                        alt={button.label}
                         className="w-full h-full object-contain"
                       />
                     ) : null}
