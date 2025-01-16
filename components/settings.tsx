@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { fonts } from "@/utils/fonts"
 import type { OBFBoard, OBZManifest } from "@/types/obz"
+import { useState } from 'react'
+import JSZip from 'jszip'
 
 interface SettingsProps {
   currentBoard: string
@@ -25,6 +27,9 @@ interface SettingsProps {
 }
 
 export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLoad }: SettingsProps) {
+  const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const [isUploading, setIsUploading] = useState(false)
+
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen()
@@ -34,13 +39,10 @@ export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLo
   }
 
   const setFont = (fontValue: string) => {
-    const font = fonts.find(f => f.value === fontValue)
-    if (font) {
-      document.documentElement.style.setProperty(
-        '--font-primary', 
-        `var(--font-${font.value}), ${font.fallback}`
-      )
-    }
+    document.body.className = document.body.className
+      .replace(/font-(raleway|opendyslexic|system)/g, '')
+      .trim()
+    document.body.classList.add(`font-${fontValue}`)
   }
 
   const themes = [
@@ -64,9 +66,12 @@ export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLo
     )
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
+
+    setIsUploading(true)
+    setUploadProgress(0)
 
     try {
       if (file.name.endsWith('.obz')) {
@@ -91,12 +96,15 @@ export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLo
           const board: OBFBoard = JSON.parse(boardJson)
           boards[id] = board
 
-          for (const image of board.images) {
-            if (image.path) {
-              const imageFile = contents.file(image.path)
-              if (imageFile) {
-                const imageData = await imageFile.async("base64")
-                image.data = `data:${image.content_type};base64,${imageData}`
+          // Process images if they exist
+          if (board.images) {
+            for (const image of board.images) {
+              if (image.path) {
+                const imageFile = contents.file(image.path)
+                if (imageFile) {
+                  const imageData = await imageFile.async("base64")
+                  image.data = `data:${image.content_type};base64,${imageData}`
+                }
               }
             }
           }
@@ -124,8 +132,13 @@ export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLo
         }
         onBoardLoad({ [board.id]: board }, board, manifest)
       }
-    } catch (e) {
-      console.error('Error loading file:', e)
+    } catch (error) {
+      console.error('Error loading file:', error)
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+      // Clear the input
+      event.target.value = ''
     }
   }
 
@@ -162,14 +175,21 @@ export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLo
 
             <div className="space-y-4">
               <Label>Load Different Board</Label>
-              <div className="flex items-center gap-2">
+              <div className="relative">
                 <Input
                   type="file"
                   accept=".obz,.obf"
                   onChange={handleFileUpload}
-                  className="text-sm"
+                  className="pr-20"
                 />
-                <Upload className="h-4 w-4 text-muted-foreground" />
+                {isUploading && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -228,4 +248,3 @@ export function Settings({ currentBoard, showMessage, onToggleMessage, onBoardLo
     </div>
   )
 }
-

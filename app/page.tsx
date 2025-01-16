@@ -25,54 +25,40 @@ export default function OBZReader() {
     setBoardHistory([])
   }
 
-  const handleBoardLink = (boardId: string, path: string) => {
-    if (!obzData) return
+  const handleBoardLink = (boardId: string) => {
+    if (!obzData || !currentBoard) return
 
-    let linkedBoard: OBFBoard | undefined
-
-    // 1. Try direct ID lookup from manifest
-    if (boardId && obzData.manifest.paths.boards[boardId]) {
-      const manifestPath = obzData.manifest.paths.boards[boardId]
-      linkedBoard = Object.values(obzData.boards).find(b => 
-        b.id === boardId || 
-        manifestPath.includes(b.id)
-      )
-    }
-
-    // 2. Try path matching
-    if (!linkedBoard && path) {
-      linkedBoard = Object.values(obzData.boards).find(b => {
-        const boardPath = obzData.manifest.paths.boards[b.id]
-        return boardPath === path || path.includes(b.id)
-      })
-    }
-
-    // 3. Try searching through all boards
+    // Find the linked board in the loaded boards
+    const linkedBoard = obzData.boards[boardId]
     if (!linkedBoard) {
-      linkedBoard = Object.values(obzData.boards).find(b => b.id === boardId)
+      console.error('Could not find linked board:', boardId)
+      return
     }
 
-    if (linkedBoard && currentBoard) {
-      setBoardHistory(prev => [...prev, currentBoard])
-      setCurrentBoard(linkedBoard)
+    // Add current board to history before changing
+    setBoardHistory(prev => [...prev, currentBoard])
+    setCurrentBoard(linkedBoard)
+  }
+
+  const handleBack = () => {
+    if (boardHistory.length > 0) {
+      const previousBoard = boardHistory[boardHistory.length - 1]
+      setBoardHistory(prev => prev.slice(0, -1))
+      setCurrentBoard(previousBoard)
     }
   }
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-background">
-      {!currentBoard ? (
-        <div className="relative h-full">
-          <BoardLoader onBoardLoad={handleBoardLoad} />
-        </div>
+    <main className="min-h-screen">
+      {currentBoard ? (
+        <BoardDisplay 
+          board={currentBoard}
+          onBoardLink={handleBoardLink}
+          onBack={boardHistory.length > 0 ? handleBack : undefined}
+        />
       ) : (
-        <div className="relative h-full">
-          <BoardDisplay
-            board={currentBoard}
-            onBoardLink={handleBoardLink}
-          />
-        </div>
+        <BoardLoader onBoardLoad={handleBoardLoad} />
       )}
     </main>
   )
 }
-

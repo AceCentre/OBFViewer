@@ -1,5 +1,4 @@
 import "@/styles/globals.css"
-import { raleway, outfit, notoSerif } from "@/utils/fonts"
 
 export default function RootLayout({
   children,
@@ -7,9 +6,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${raleway.variable} ${outfit.variable} ${notoSerif.variable}`}>
-      <body className={raleway.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   )
 }
-
