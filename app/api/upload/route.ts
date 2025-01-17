@@ -6,7 +6,7 @@ import type { OBFBoard, OBZManifest } from '@/types/obz'
 async function renderBoardToImage(board: OBFBoard, manifest: OBZManifest) {
   console.log('Starting browser...')
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   })
   
