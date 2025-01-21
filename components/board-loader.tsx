@@ -142,7 +142,7 @@ export function BoardLoader({ onBoardLoad }: BoardLoaderProps) {
           <div className="text-sm text-muted-foreground mt-4 p-2 bg-muted rounded-md">
             <p>You can also load a board directly via URL:</p>
             <code className="block mt-2 p-2 bg-background rounded border">
-              https://your-site.com/?board=https://example.com/path/to/board.obz
+              https://obfviewer.acecentre.net/?board=https://example.com/path/to/board.obz
             </code>
           </div>
         </CardContent>
